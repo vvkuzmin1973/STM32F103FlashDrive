@@ -91,10 +91,6 @@ int main(void)
   MX_GPIO_Init();
   MX_USART1_UART_Init();
   MX_USB_DEVICE_Init();
-  uint8_t i=0;
-  for (i=0; i<150;i++) {
-	   buff[i]=i;
-  }
 
   /* USER CODE BEGIN 2 */
 	  sprintf (buff, "...START... %d\r\n",i++);
@@ -106,8 +102,6 @@ int main(void)
   while (1)
   {
 	  dBlink(10,50,1000);
-	 // sprintf (buff, "Main %d\r\n",i++);
-	 // dDebugSend(&huart1,buff);
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
