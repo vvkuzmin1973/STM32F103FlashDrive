@@ -46,7 +46,8 @@
 #include "usb_device.h"
 
 /* USER CODE BEGIN Includes */
-#include "../../cdebug/cdebug.h"
+#include "cdebug.h"
+#include "fsflash.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -93,16 +94,36 @@ int main(void)
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */
-	  sprintf (buff, "...START... %d\r\n",i++);
-	  dDebugSend(&huart1,buff);
+	  dDebugSend(&huart1,"...START... \r\n");
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
+
+ char file_list[200];
+ char *fdata;
+ char file_name[9];
+
+ sprintf(file_name,"TEST2   TXT");
+ uint8_t result = f12_read_data (file_name,&fdata,file_list,200); // поищем файл TEST2.TXT
+
+ if (result == 0) {
+  dDebugSend(&huart1,"\r\nFILES:\r\n");
+  dDebugSend(&huart1,file_list);
+
+  dDebugSend(&huart1,"\r\nDATA:\r\n");
+  dDebugSend(&huart1,fdata); // распечатам данные файла TEST2.TXT
+ }
+ else {
+ sprintf (buff, "ERROR f12_read_data: %d\r\n",result);
+ dDebugSend(&huart1,buff);
+ }
+
   while (1)
   {
 	  dBlink(10,50,1000);
   /* USER CODE END WHILE */
+
 
   /* USER CODE BEGIN 3 */
 

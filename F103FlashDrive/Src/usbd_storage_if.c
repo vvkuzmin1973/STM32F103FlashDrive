@@ -44,6 +44,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "usbd_storage_if.h"
 /* USER CODE BEGIN INCLUDE */
+#include "fsflash.h"
 /* USER CODE END INCLUDE */
 
 /** @addtogroup STM32_USB_OTG_DEVICE_LIBRARY
@@ -61,14 +62,6 @@
 /* USER CODE BEGIN PRIVATE_TYPES */
 extern UART_HandleTypeDef huart1;
 extern uint8_t buff[150];
-// функция чтения uint8_t из flash
-uint8_t uint8_t_from_internal_flash(uint32_t address) {
-	return *((uint8_t *)address);
-}
-// функция чтения uint32_t из flash
-uint32_t uint32_t_from_internal_flash(uint32_t address) {
-	return *((uint32_t *)address);
-}
 
 /* USER CODE END PRIVATE_TYPES */ 
 /**
@@ -80,11 +73,6 @@ uint32_t uint32_t_from_internal_flash(uint32_t address) {
   */ 
 
 /* USER CODE BEGIN PRIVATE_DEFINES */
-#define STORAGE_LUN_NBR                  1
-#define STORAGE_BLK_NBR                  0x80  // количество секторов
-#define STORAGE_BLK_SIZ                  0x200 // размер сектора 0x200 * 0x80 = 65535 bytes
-#define PAGE_ADDR ((uint32_t)0x08006000) //((uint32_t)0x08007800)
-uint32_t blk_buff[STORAGE_BLK_SIZ/4]; // 512 bytes for FLASH erase sector
 /* USER CODE END PRIVATE_DEFINES */
   
 /**
@@ -95,60 +83,8 @@ uint32_t blk_buff[STORAGE_BLK_SIZ/4]; // 512 bytes for FLASH erase sector
   * @{
   */ 
 /* USER CODE BEGIN PRIVATE_MACRO */
-// функция сохранения соседнего сектора перед стиранием страницы
-void set_buf_before_erase(uint32_t page_addr) {
-    for (int i=0; i<STORAGE_BLK_SIZ/4;i++) {
-        blk_buff[i]=uint32_t_from_internal_flash(page_addr);
-        page_addr+=4;
-    }
-}
-// функция определения адреса страницы
-uint32_t get_erase_addr (uint32_t page_addr) {
-    uint32_t cnt = page_addr-PAGE_ADDR;
-    if (cnt % (STORAGE_BLK_SIZ*2) == 0)
-        return page_addr;
-    else
-        return page_addr-STORAGE_BLK_SIZ;
-}
+
 // функция записи во flash
-void writeBuf (uint32_t page_addr, uint8_t *buf){
-
-   uint32_t erase_addr=get_erase_addr(page_addr);
-   uint32_t buf_erase_addr;
-   uint32_t buf32;
-
-
-   if (page_addr != erase_addr) { // addr стираем пред.страницу
-       buf_erase_addr=erase_addr;
-   }   else    {
-       buf_erase_addr=erase_addr+STORAGE_BLK_SIZ;
-     }
-    HAL_FLASH_Unlock();
-
-   set_buf_before_erase(buf_erase_addr);
-
-   FLASH_EraseInitTypeDef EraseInitStruct;
-   uint32_t PAGEError = 0;
-   EraseInitStruct.TypeErase   = FLASH_TYPEERASE_PAGES;
-   EraseInitStruct.PageAddress = erase_addr;
-   EraseInitStruct.NbPages     = 1;
-
-   HAL_FLASHEx_Erase(&EraseInitStruct,&PAGEError);
-
-   // запишем сохраненный буфер
-   for (int i=0; i<STORAGE_BLK_SIZ/4;i++) {
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD,buf_erase_addr,blk_buff[i]);
-    buf_erase_addr+=4;
-    }
-   // запишем данные
-   for (int i=0; i<STORAGE_BLK_SIZ/4;i++) {
-    buf32=*(uint32_t *)&buf[i*4];
-    HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, page_addr,buf32);
-    page_addr+=4;
-    }
-
-    HAL_FLASH_Lock();
-}
 
 /* USER CODE END PRIVATE_MACRO */
 
