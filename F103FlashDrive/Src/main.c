@@ -104,7 +104,7 @@ int main(void)
  char *fdata;
  char file_name[9];
 
- sprintf(file_name,"TEST2   TXT");
+ sprintf(file_name,"UART_SPDSET");
  uint8_t result = f12_read_data (file_name,&fdata,file_list,200); // поищем файл TEST2.TXT
 
  if (result == 0) {
